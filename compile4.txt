@@ -1,0 +1,13 @@
+An unexpected error occurred:
+
+TypeError: Cannot read properties of undefined (reading 'fileExists')
+    at readConfig (C:\Users\Moiz\.gemini\antigravity\scratch\pay-it-upstream\node_modules\ts-node\src\configuration.ts:161:25)
+    at findAndReadConfig (C:\Users\Moiz\.gemini\antigravity\scratch\pay-it-upstream\node_modules\ts-node\src\configuration.ts:79:5)
+    at create (C:\Users\Moiz\.gemini\antigravity\scratch\pay-it-upstream\node_modules\ts-node\src\index.ts:623:46)
+    at Object.register (C:\Users\Moiz\.gemini\antigravity\scratch\pay-it-upstream\node_modules\ts-node\src\index.ts:591:15)
+    at Object.<anonymous> (C:\Users\Moiz\.gemini\antigravity\scratch\pay-it-upstream\node_modules\ts-node\register\transpile-only.js:1:16)
+    at Module._compile (node:internal/modules/cjs/loader:1804:14)
+    at Object..js (node:internal/modules/cjs/loader:1936:10)
+    at Module.load (node:internal/modules/cjs/loader:1525:32)
+    at Module._load (node:internal/modules/cjs/loader:1327:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:328:14)

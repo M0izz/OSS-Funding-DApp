@@ -1,0 +1,46 @@
+Γùç injected env (0) from .env
+
+
+  OSSFundingSplitter
+    TC-1: Pull-payment ΓÇö funds are credited and can be withdrawn by recipient
+      Γ£ö credits balances on receive() and lets the recipient pull via withdraw()
+      Γ£ö withdraw() sends ETH only to msg.sender, not to others
+    TC-2: No owner drain ΓÇö credited balances cannot be moved by the owner
+      1) owner has no function that transfers credited balances to another address
+    TC-3: Reentrancy protection ΓÇö balance zeroed before transfer
+      2) ReentrancyAttacker cannot drain more than its share via re-entry
+    TC-4: Split validation ΓÇö shares must sum to BASIS_POINTS
+      Γ£ö reverts in constructor when shares do not sum to 10 000
+      Γ£ö reverts in setSplit when shares do not sum to 10 000
+      Γ£ö reverts when arrays have different lengths
+      Γ£ö accepts a valid split that sums to exactly 10 000
+      Γ£ö reverts when a recipient is the zero address
+    TC-5: Remainder handling ΓÇö every wei is credited to someone
+      Γ£ö sums all credited balances to exactly msg.value even for indivisible amounts
+    TC-6: Accounting correctness ΓÇö credited amount equals msg.value
+      Γ£ö total credited balances equal the exact ETH sent (via receive)
+      Γ£ö total credited balances equal the exact ETH sent (via fund())
+    TC-8: Withdrawal amount assertion ΓÇö exact ETH received
+      Γ£ö alice receives exactly her share of the funded ETH after calling withdraw()
+      Γ£ö bob receives exactly his share after calling withdraw()
+      Γ£ö reverts when recipient has nothing to withdraw
+
+
+  13 passing (4s)
+  2 failing
+
+  1) OSSFundingSplitter
+       TC-2: No owner drain ΓÇö credited balances cannot be moved by the owner
+         owner has no function that transfers credited balances to another address:
+     TypeError: Cannot convert undefined or null to object
+      at Object.keys (<anonymous>)
+      at Context.<anonymous> (test\OSSFundingSplitter.ts:131:36)
+
+  2) OSSFundingSplitter
+       TC-3: Reentrancy protection ΓÇö balance zeroed before transfer
+         ReentrancyAttacker cannot drain more than its share via re-entry:
+     AssertionError: Expected transaction to be reverted with custom error 'ReentrancyGuardReentrantCall', but it didn't revert
+      at async Context.<anonymous> (test\OSSFundingSplitter.ts:168:13)
+
+
+
