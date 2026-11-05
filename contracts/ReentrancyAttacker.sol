@@ -11,6 +11,9 @@ import "./OSSFundingSplitter.sol";
 contract ReentrancyAttacker {
     OSSFundingSplitter public splitter;
     uint256 public attackCount;
+    bool public reentryAttempted;
+    bool public reentryBlocked;
+    bytes4 public reentryErrorSelector;
 
     constructor(address payable _splitter) {
         splitter = OSSFundingSplitter(_splitter);
@@ -25,9 +28,14 @@ contract ReentrancyAttacker {
 
     receive() external payable {
         attackCount++;
-        // Attempt re-entry — should revert due to ReentrancyGuard
         if (address(splitter).balance > 0) {
-            splitter.withdraw();
+            reentryAttempted = true;
+            try splitter.withdraw() {
+                // The test verifies this path is rejected by the guard.
+            } catch (bytes memory reason) {
+                reentryBlocked = true;
+                reentryErrorSelector = bytes4(reason);
+            }
         }
     }
 

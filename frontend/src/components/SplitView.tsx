@@ -1,20 +1,6 @@
 import { useReadContract } from "wagmi";
 import { CONTRACT_ADDRESS, SPLITTER_ABI } from "../contract";
 
-/** Ratio labels for known role patterns (display only — not used in logic). */
-const ROLE_HINTS: Record<number, string> = {
-    0: "Maintainer",
-    1: "Upstream Lib 1",
-    2: "Upstream Lib 2",
-    3: "Upstream Lib 3",
-    4: "Contributor 1",
-    5: "Contributor 2",
-    6: "Contributor 3",
-    7: "Contributor 4",
-    8: "Contributor 5",
-    9: "Sponsor Reserve",
-};
-
 function bpToPercent(bp: bigint): string {
     return ((Number(bp) / 100)).toFixed(2) + "%";
 }
@@ -77,7 +63,7 @@ export function SplitView() {
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Role</th>
+                                <th>Recipient</th>
                                 <th>Address</th>
                                 <th>Basis Points</th>
                                 <th>Share</th>
@@ -89,7 +75,7 @@ export function SplitView() {
                                     <td className="idx-cell">{i + 1}</td>
                                     <td className="role-cell">
                                         <span className="role-badge">
-                                            {ROLE_HINTS[i] ?? `Recipient ${i + 1}`}
+                                            {`Recipient ${i + 1}`}
                                         </span>
                                     </td>
                                     <td className="addr-cell">

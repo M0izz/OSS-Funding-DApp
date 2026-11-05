@@ -1,6 +1,5 @@
 import { useReadContract } from "wagmi";
-import { CONTRACT_ADDRESS, SPLITTER_ABI } from "../contract";
-import { formatEther } from "viem";
+import { SPLITTER_ABI } from "../contract";
 
 interface ContractInfoProps {
     address: `0x${string}`;
