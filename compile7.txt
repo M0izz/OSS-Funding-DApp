@@ -1,4 +1,0 @@
-Γùç injected env (0) from .env
-Generating typings for: 6 artifacts in dir: typechain-types for target: ethers-v6
-Successfully generated 22 typings!
-Compiled 6 Solidity files successfully (evm target: paris).

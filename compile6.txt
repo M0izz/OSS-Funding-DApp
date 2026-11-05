@@ -1,4 +1,0 @@
-Error HH801: Plugin @nomicfoundation/hardhat-toolbox requires the following dependencies to be installed: @nomicfoundation/hardhat-ignition-ethers.
-Please run: npm install --save-dev "@nomicfoundation/hardhat-ignition-ethers@^0.15.14"
-
-For more info go to https://v2.hardhat.org/HH801 or run Hardhat with --show-stack-traces
