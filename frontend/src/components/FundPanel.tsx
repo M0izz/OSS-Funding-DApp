@@ -3,21 +3,50 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagm
 import { parseEther } from "viem";
 import { CONTRACT_ADDRESS, SPLITTER_ABI } from "../contract";
 
+function validateEthAmount(amount: string): { value?: bigint; error?: string } {
+    const trimmedAmount = amount.trim();
+    if (!trimmedAmount) {
+        return { error: "Enter an ETH amount." };
+    }
+
+    if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(trimmedAmount)) {
+        return { error: "Enter a valid positive ETH amount." };
+    }
+
+    const decimalPlaces = trimmedAmount.split(".")[1]?.length ?? 0;
+    if (decimalPlaces > 18) {
+        return { error: "ETH amounts can have at most 18 decimal places." };
+    }
+
+    try {
+        const value = parseEther(trimmedAmount);
+        if (value <= 0n) {
+            return { error: "Funding amount must be greater than zero." };
+        }
+        return { value };
+    } catch {
+        return { error: "Enter a valid positive ETH amount." };
+    }
+}
+
 export function FundPanel() {
     const { isConnected } = useAccount();
     const [ethAmount, setEthAmount] = useState("0.01");
+    const amountValidation = validateEthAmount(ethAmount);
     const { data: hash, writeContract, isPending, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
         hash,
     });
 
     function handleFund() {
-        if (!ethAmount || isNaN(Number(ethAmount))) return;
+        const validation = validateEthAmount(ethAmount);
+        if (validation.value === undefined) return;
+
         writeContract({
             address: CONTRACT_ADDRESS,
             abi: SPLITTER_ABI,
             functionName: "fund",
-            value: parseEther(ethAmount),
+            value: validation.value,
         });
     }
 
@@ -42,13 +71,14 @@ export function FundPanel() {
                         <span className="input-prefix">Ξ</span>
                         <input
                             id="fund-amount"
-                            type="number"
-                            min="0"
-                            step="0.001"
+                            type="text"
+                            inputMode="decimal"
                             value={ethAmount}
                             onChange={(e) => setEthAmount(e.target.value)}
                             className="input"
                             placeholder="0.01"
+                            aria-invalid={amountValidation.error !== undefined}
+                            aria-describedby="fund-amount-error"
                         />
                     </div>
                 </div>
@@ -57,7 +87,12 @@ export function FundPanel() {
                     id="btn-fund"
                     className="btn btn-green"
                     onClick={handleFund}
-                    disabled={!isConnected || isPending || isConfirming}
+                    disabled={
+                        !isConnected ||
+                        amountValidation.value === undefined ||
+                        isPending ||
+                        isConfirming
+                    }
                 >
                     {isPending
                         ? "Confirm in wallet…"
@@ -66,6 +101,12 @@ export function FundPanel() {
                             : "Fund Project ↗"}
                 </button>
             </div>
+
+            {amountValidation.error && (
+                <div id="fund-amount-error" className="alert alert-error" role="alert">
+                    {amountValidation.error}
+                </div>
+            )}
 
             {isSuccess && (
                 <div className="alert alert-success">

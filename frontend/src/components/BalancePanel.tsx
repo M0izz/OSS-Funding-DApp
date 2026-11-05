@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { formatEther } from "viem";
 import { CONTRACT_ADDRESS, SPLITTER_ABI } from "../contract";
@@ -26,10 +27,11 @@ export function BalancePanel() {
         });
     }
 
-    // Refetch after successful withdrawal
-    if (isSuccess) {
-        refetch();
-    }
+    useEffect(() => {
+        if (isSuccess) {
+            void refetch();
+        }
+    }, [isSuccess, refetch]);
 
     const hasBalance = balance !== undefined && balance > 0n;
 

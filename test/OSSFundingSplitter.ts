@@ -149,45 +149,36 @@ describe("OSSFundingSplitter", function () {
     // ───────────────────────────────────────────────────────────────────────────
     describe("TC-3: Reentrancy protection — balance zeroed before transfer", function () {
         it("ReentrancyAttacker cannot drain more than its share via re-entry", async function () {
-            // Deploy with attacker as sole recipient so it has a balance to withdraw
             const AttackerFactory = await ethers.getContractFactory("ReentrancyAttacker");
-
-            // Deploy splitter with one dummy recipient first, then we'll put the
-            // attacker in for a dedicated single-recipient test splitter.
             const singleSplitter = await deploySplitter(
-                [await owner.getAddress()], // placeholder, replaced below
-                [10000n]
+                [alice.address, bob.address],
+                [5000n, 5000n]
             );
-
-            // Now deploy attacker pointing at the single splitter, then reconfigure
             const attacker = (await AttackerFactory.deploy(
                 await singleSplitter.getAddress()
             )) as unknown as ReentrancyAttacker;
 
-            // Reconfigure splitter so attacker is the only recipient
             await singleSplitter
                 .connect(owner)
-                .setSplit([await attacker.getAddress()], [10000n]);
+                .setSplit([await attacker.getAddress(), alice.address], [5000n, 5000n]);
 
-            // Try the attack — attacker sends 1 ETH which credits it 1 ETH,
-            // then on withdrawal the receive() hook tries to re-enter withdraw();
-            // The ReentrancyGuard must block the second call.
-            // The outer attack() call itself succeeds (withdraw on line 1 passes),
-            // but the re-entry inside receive() is blocked, so the attacker only
-            // receives funds once even though it tried to call withdraw() twice.
+            // The remaining half-share keeps the splitter funded during receive(),
+            // so the attacker reaches the nested withdrawal attempt.
             await attacker.attack({ value: ethers.parseEther("1") });
 
-            // The attacker's internal balance counter tells us its receive() was
-            // called exactly once (first successful withdrawal) and the re-entry
-            // reverted silently (call in receive() failed, no throw propagated).
-            // The key assertion: attacker has at most 1 ETH (one share), not 2 ETH.
             const attackerBalance = await attacker.getBalance();
             const splitterBalance = await ethers.provider.getBalance(await singleSplitter.getAddress());
 
-            // Attacker got exactly 1 ETH (its legitimate share) — no more.
-            expect(attackerBalance).to.equal(ethers.parseEther("1"));
-            // Splitter holds nothing — the legitimate share was paid out correctly.
-            expect(splitterBalance).to.equal(0n);
+            expect(await attacker.attackCount()).to.equal(1n);
+            expect(await attacker.reentryAttempted()).to.equal(true);
+            expect(await attacker.reentryBlocked()).to.equal(true);
+            expect(await attacker.reentryErrorSelector()).to.equal(
+                ethers.id("ReentrancyGuardReentrantCall()").slice(0, 10)
+            );
+            expect(attackerBalance).to.equal(ethers.parseEther("0.5"));
+            expect(splitterBalance).to.equal(ethers.parseEther("0.5"));
+            expect(await singleSplitter.balances(await attacker.getAddress())).to.equal(0n);
+            expect(await singleSplitter.balances(alice.address)).to.equal(ethers.parseEther("0.5"));
         });
     });
 
